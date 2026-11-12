@@ -18,7 +18,7 @@ function haversine(lat1, lon1, lat2, lon2) {
     Math.cos(latRadian1) *
       Math.cos(latRadian2) *
       Math.sin(lonRadianDifference / 2) ** 2;
-  const c = 2 * a * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return earthRadius * c;
 }
