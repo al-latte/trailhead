@@ -23,39 +23,56 @@ function haversine(lat1, lon1, lat2, lon2) {
   return earthRadius * c;
 }
 
-export const getTrackSegmentPoints = (tracks) => {
-  return tracks.map((track) => {
-    return track.map((tracksegment) => tracksegment);
-  });
-};
-
-export const calculateTotalDistance = (trackSegments) => {
-  return trackSegments.map((segment) => {
+export const calculateTotalDistancePerSegment = (trackSegments) => {
+  const distancesPerSegment = trackSegments.map((segment) => {
     return segment.reduce(
-      (accumulator, cuurentPoint) => {
+      (accumulator, currentPoint) => {
         if (accumulator.previousPoint === null)
-          return { previousPoint: cuurentPoint, total: 0 };
+          return { previousPoint: currentPoint, total: 0 };
 
         let distance = haversine(
           accumulator.previousPoint?.latitude,
           accumulator.previousPoint?.longitude,
-          cuurentPoint?.latitude,
-          cuurentPoint?.longitude,
+          currentPoint?.latitude,
+          currentPoint?.longitude,
         );
         return {
-          previousPoint: cuurentPoint,
+          previousPoint: currentPoint,
           total: accumulator.total + distance,
         };
       },
       { previousPoint: null, total: 0 },
     );
   });
+
+  return distancesPerSegment.map(distanceObj => distanceObj.total)
 };
 
-export const calculateElevationGain = (elevations) => {
-  return elevations.reduce((acc, currentVal) => {
-    if (currentVal > acc) {
-      acc + currentVal;
-    }
-  }, elevations[0]);
+export const calculateTotalDistancePerTrack = (segmentDistances) => {
+  return segmentDistances.reduce((acc, cur) => acc + cur)
+}
+
+export const calculateElevationGainPerSegment = (trackSegments) => {
+  let elevationsperSegment =  trackSegments.map((segment) => {
+    return segment.reduce(
+      (accumulator, currentPoint) => {
+        if (accumulator.previousPoint === null)
+          return { previousPoint: currentPoint, gain: 0 };
+
+        let elevationGain = currentPoint?.elevation - accumulator.previousPoint?.elevation;
+        let totalGain = elevationGain > 0 ? accumulator.gain + elevationGain : accumulator.gain
+        return {
+          previousPoint: currentPoint,
+          gain: totalGain,
+        };
+      },
+      { previousPoint: null, gain: 0 },
+    );
+  });
+
+  return elevationsperSegment.map(distanceObj => distanceObj.gain)
 };
+
+export const calculateElevationGainPerTrack = (segmentElevationGains) => {
+  return segmentElevationGains.reduce((acc, cur) => acc + cur)
+}

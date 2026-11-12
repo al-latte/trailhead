@@ -1,9 +1,8 @@
-import { destructureGPX, handleGPXParse } from "./gpx.js";
+import { handleGPXParse } from "./gpx.js";
 import { drawMap } from "./canvas.js";
-import {
-  calculateTotalDistance,
-  getTrackSegmentPoints,
-} from "./calculations.js";
+import { calculateTotalDistancePerSegment, calculateTotalDistancePerTrack, calculateElevationGainPerSegment, calculateElevationGainPerTrack } from "./calculations.js";
+
+import Trip from "./Trip.js"
 
 const uploadedFiles = document.getElementById("gpx");
 
@@ -16,17 +15,29 @@ const canvasDimensions = {
 const canvasCtx = canvas.getContext("2d");
 let destructureGPXFile = null;
 
-uploadedFiles.addEventListener("change", async () => {
-  let file = await handleGPXParse(uploadedFiles, destructureGPX);
-  destructureGPXFile = file;
+let trips = []
+localStorage.setItem("trips", JSON.stringify(trips))
 
+uploadedFiles.addEventListener("change", async () => {
+  let file = await handleGPXParse(uploadedFiles);
+
+  if (destructureGPXFile) {
+    canvasCtx.reset();
+  }
+
+  destructureGPXFile = file;
   drawMap(file, canvasCtx, canvasDimensions);
 
-  let trackPoints = getTrackSegmentPoints(destructureGPXFile.tracks);
-  console.log(
-    "Total Distance",
-    trackPoints.map((points) => {
-      return calculateTotalDistance(points);
-    }).reduce((acc, current) => acc + current.total, 0)
-  );
+
+  const trip = {
+    name: destructureGPXFile.metadata?.name || "New trip",
+    date: destructureGPXFile.metadata?.time || Date.now(),
+    route: destructureGPXFile,
+    notes: "some notes"
+  }
+
+   trips.push(new Trip(trip))
+  localStorage.setItem("trips", JSON.stringify(trips))
+  
+
 });

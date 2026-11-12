@@ -1,4 +1,4 @@
-export const findBoundry = (points) => {
+export const findBoundary = (points) => {
   let maxLatitude = Math.max(...(points || []).map((p) => p.latitude));
   let maxLongitude = Math.max(...(points || []).map((p) => p.longitude));
 
@@ -8,7 +8,12 @@ export const findBoundry = (points) => {
   return { maxLatitude, maxLongitude, minLatitude, minLongitude };
 };
 
-export const convertCoordinatesToPixels = (lat, lon, boundry, canvasDimension) => {
+export const convertCoordinatesToPixels = (
+  lat,
+  lon,
+  boundary,
+  canvasDimension,
+) => {
   const calculateFormula = (
     value,
     inputMin,
@@ -24,15 +29,15 @@ export const convertCoordinatesToPixels = (lat, lon, boundry, canvasDimension) =
 
   const latToPixels = calculateFormula(
     lat,
-    boundry.minLatitude,
-    boundry.maxLatitude,
+    boundary.minLatitude,
+    boundary.maxLatitude,
     canvasDimension.height,
     0,
   );
   const lonToPixels = calculateFormula(
     lon,
-    boundry.minLongitude,
-    boundry.maxLongitude,
+    boundary.minLongitude,
+    boundary.maxLongitude,
     0,
     canvasDimension.width,
   );
@@ -41,22 +46,27 @@ export const convertCoordinatesToPixels = (lat, lon, boundry, canvasDimension) =
     x: lonToPixels,
     y: latToPixels,
   };
-}
+};
 
 export const drawMap = (gpxFileObject, canvasContext, canvasDimensions) => {
   canvasContext.lineWidth = 5;
-  canvasContext.beginPath();
 
-  gpxFileObject.tracks.forEach((trk) => {
-    trk.forEach((trkseg) => {
+  const colors = ["#FF5733", "#3498DB", "#2ECC71"];
 
-      const boundry = findBoundry(trkseg);
+  gpxFileObject.tracks.forEach((track) => {
+    track.segments.forEach((segment, index) => {
+      canvasContext.beginPath();
+      canvasContext.strokeStyle = colors[index % colors.length];
 
-      trkseg.forEach((point, index) => {
+      const boundary = gpxFileObject.metadata.bounds
+        ? gpxFileObject.metadata.bounds
+        : findBoundary(segment);
+
+      segment.forEach((point, index) => {
         let { x, y } = convertCoordinatesToPixels(
           point.latitude,
           point.longitude,
-          boundry,
+          boundary,
           canvasDimensions,
         );
 
