@@ -4,13 +4,48 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>trailhead</title>
+    <title>Trailhead - GPS Track Analyzer</title>
   </head>
   <body>
     <div id="app">
-      <input type="file" name="gpx" id="gpx">
-      <canvas id="gpx_map" width="600" height="300"></canvas>
-      <section id="trips"></section>
+      <header class="app-header">
+        <h1>Trailhead</h1>
+        <p>Upload, visualize, and save your GPS track segments</p>
+      </header>
+
+      <main class="app-main">
+        <!-- Controls & Upload Section -->
+        <div class="card control-card">
+          <div class="file-upload-wrapper">
+            <label for="gpx" class="file-upload-label">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Choose GPS File</span>
+            </label>
+            <input type="file" name="gpx" id="gpx" accept=".gpx">
+          </div>
+          <button id="save-trip-btn" class="btn primary-btn" >Save Current Trip</button>
+        </div>
+
+        <!-- Canvas Visualizer Section -->
+        <div class="card canvas-card">
+          <h2>Elevation & Track Profile</h2>
+          <div class="canvas-container">
+            <canvas id="gpx_map" width="700" height="300"></canvas>
+          </div>
+          <div id="stats-overlay" class="stats-overlay">
+            <span>Elevation Gain: <strong id="stat-gain">0 m</strong></span>
+            <span>Distance: <strong id="stat-distance">0 km</strong></span>
+          </div>
+        </div>
+
+        <!-- Saved Trips Display List -->
+        <div class="card trips-card">
+          <h2>Saved Trips</h2>
+          <section id="trips">
+            <p class="empty-state">No saved trips yet. Upload a track and click save!</p>
+          </section>
+        </div>
+      </main>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>
