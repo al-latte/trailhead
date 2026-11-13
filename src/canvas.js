@@ -81,3 +81,7 @@ export const drawMap = (gpxFileObject, canvasContext, canvasDimensions) => {
     });
   });
 };
+
+export const clearCanvas = (canvasContext) => {
+  canvasContext.reset();
+}

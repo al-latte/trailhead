@@ -1,7 +1,7 @@
 import "./style.css";
 
 import { handleGPXParse } from "./gpx.js";
-import { drawMap } from "./canvas.js";
+import { drawMap, clearCanvas } from "./canvas.js";
 import {
   calculateTotalDistancePerSegment,
   calculateTotalDistancePerTrack,
@@ -22,6 +22,7 @@ const canvasDimensions = {
 const canvasCtx = canvas.getContext("2d");
 const saveBtn = document.getElementById('save-trip-btn');
 const statGain = document.getElementById('stat-gain');
+const clearCanvasBtn = document.getElementById('clear-canvas-btn');
 const statDistance = document.getElementById('stat-distance');
 const tripsSection = document.getElementById('trips');
 let destructureGPXFile = null;
@@ -35,7 +36,7 @@ fileUpload.addEventListener("change", async () => {
     let file = await handleGPXParse(fileUpload);
 
     if (destructureGPXFile) {
-      canvasCtx.reset();
+      clearCanvas(canvasCtx);
     }
 
     destructureGPXFile = file;
@@ -65,11 +66,14 @@ saveBtn.addEventListener('click', () => {
     return;
   }
 
+  const tripNotes = prompt('How was the trip?', '');
+
+
   const newTrip = new Trip({
     name: destructureGPXFile.metadata?.name || "New trip",
     date: destructureGPXFile.metadata?.time || Date.now(),
     route: destructureGPXFile,
-    notes: "some notes",
+    notes: tripNotes,
     totalElevationGain: calculateElevationGainPerTrack(
       calculateElevationGainPerSegment(destructureGPXFile.tracks[0].segments)
     ),
@@ -83,6 +87,15 @@ saveBtn.addEventListener('click', () => {
   renderTrips();
 });
 
+clearCanvasBtn.addEventListener('click', () => {
+  clearCanvas(canvasCtx);
+  destructureGPXFile = null;
+  statDistance.textContent = '0.00 km';
+  statGain.textContent = '0.00 m';
+  fileUpload.value = '';
+  alert('Canvas cleared. You can upload a new GPX file.');
+});
+
 // Render trips list
 function renderTrips() {
   if (savedTrips.length === 0) {
@@ -94,7 +107,9 @@ function renderTrips() {
     <div class="trip-item">
       <div class="trip-info">
         <h4>${trip.name}</h4>
+        <p>Date: <strong>${new Date(trip.date).toLocaleDateString()}</strong></p>
         <p>Elevation Gain: <strong>${trip.totalElevationGain} m</strong> • Distance: <strong>${trip?.totalDistance.toFixed(2)} km</strong></p>
+        <p>Notes: <strong>${trip.notes}</strong></p>
       </div>
     </div>
   `).join('');
