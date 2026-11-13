@@ -23,6 +23,10 @@ function haversine(lat1, lon1, lat2, lon2) {
   return earthRadius * c;
 }
 
+ export const calculateDistanceBetweenTwoPoints = (pointA, pointB) => {
+  return haversine(pointA.latitude, pointA.longitude, pointB.latitude, pointB.longitude)
+} 
+
 export const calculateTotalDistancePerSegment = (trackSegments) => {
   const distancesPerSegment = trackSegments.map((segment) => {
     return segment.reduce(
@@ -30,12 +34,7 @@ export const calculateTotalDistancePerSegment = (trackSegments) => {
         if (accumulator.previousPoint === null)
           return { previousPoint: currentPoint, total: 0 };
 
-        let distance = haversine(
-          accumulator.previousPoint?.latitude,
-          accumulator.previousPoint?.longitude,
-          currentPoint?.latitude,
-          currentPoint?.longitude,
-        );
+        let distance = calculateDistanceBetweenTwoPoints(accumulator.previousPoint, currentPoint)
         return {
           previousPoint: currentPoint,
           total: accumulator.total + distance,
@@ -51,6 +50,12 @@ export const calculateTotalDistancePerSegment = (trackSegments) => {
 export const calculateTotalDistancePerTrack = (segmentDistances) => {
   return segmentDistances.reduce((acc, cur) => acc + cur)
 }
+
+ export const calculateElevationGainBetweenTwoPoints = (pointA, pointB) => {
+  let gain = pointB.elevation - pointA.elevation
+  let letIsPositive = gain > 0
+  if (letIsPositive) return gain
+} 
 
 export const calculateElevationGainPerSegment = (trackSegments) => {
   let elevationsperSegment =  trackSegments.map((segment) => {

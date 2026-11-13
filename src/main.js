@@ -1,8 +1,13 @@
 import { handleGPXParse } from "./gpx.js";
 import { drawMap } from "./canvas.js";
-import { calculateTotalDistancePerSegment, calculateTotalDistancePerTrack, calculateElevationGainPerSegment, calculateElevationGainPerTrack } from "./calculations.js";
+import {
+  calculateTotalDistancePerSegment,
+  calculateTotalDistancePerTrack,
+  calculateElevationGainPerSegment,
+  calculateElevationGainPerTrack,
+} from "./calculations.js";
 
-import Trip from "./Trip.js"
+import Trip from "./Trip.js";
 
 const uploadedFiles = document.getElementById("gpx");
 
@@ -15,29 +20,42 @@ const canvasDimensions = {
 const canvasCtx = canvas.getContext("2d");
 let destructureGPXFile = null;
 
-let trips = []
-localStorage.setItem("trips", JSON.stringify(trips))
+let trips = [];
+localStorage.setItem("trips", JSON.stringify(trips));
 
 uploadedFiles.addEventListener("change", async () => {
-  let file = await handleGPXParse(uploadedFiles);
+  try {
+    let file = await handleGPXParse(uploadedFiles);
 
-  if (destructureGPXFile) {
-    canvasCtx.reset();
+    if (destructureGPXFile) {
+      canvasCtx.reset();
+    }
+
+    destructureGPXFile = file;
+    drawMap(file, canvasCtx, canvasDimensions);
+
+    const trip = {
+      name: destructureGPXFile.metadata?.name || "New trip",
+      date: destructureGPXFile.metadata?.time || Date.now(),
+      route: destructureGPXFile,
+      notes: "some notes",
+    };
+
+    trips.push(new Trip(trip));
+    localStorage.setItem("trips", JSON.stringify(trips));
+
+    const segmentDistances = calculateTotalDistancePerSegment(
+      destructureGPXFile.tracks[0].segments,
+    );
+    const totalDistance = calculateTotalDistancePerTrack(segmentDistances);
+
+    const segmentElevationGains = calculateElevationGainPerSegment(
+      destructureGPXFile.tracks[0].segments,
+    );
+    const totalElevationGain = calculateElevationGainPerTrack(
+      segmentElevationGains,
+    );
+  } catch (error) {
+    console.error(error.message);
   }
-
-  destructureGPXFile = file;
-  drawMap(file, canvasCtx, canvasDimensions);
-
-
-  const trip = {
-    name: destructureGPXFile.metadata?.name || "New trip",
-    date: destructureGPXFile.metadata?.time || Date.now(),
-    route: destructureGPXFile,
-    notes: "some notes"
-  }
-
-   trips.push(new Trip(trip))
-  localStorage.setItem("trips", JSON.stringify(trips))
-  
-
 });

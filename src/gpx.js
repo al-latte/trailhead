@@ -54,18 +54,17 @@ export const deconstructGPX = (gpxFileDocument) => {
 
   function buildTrackSegmentArray(track) {
     let segments = getElementCollection(track, "trkseg");
-    return segments.map(segment => {
-      let trackPoints = getElementCollection(segment, "trkpt")
-      return trackPoints.map(point => buildPointObject(point))
-    })
-    
+    return segments.map((segment) => {
+      let trackPoints = getElementCollection(segment, "trkpt");
+      return trackPoints.map((point) => buildPointObject(point));
+    });
   }
 
   return {
     metadata,
 
-    waypoints: getElementCollection(gpxFileDocument,"wpt").map(
-      (wpt) => buildPointObject(wpt),
+    waypoints: getElementCollection(gpxFileDocument, "wpt").map((wpt) =>
+      buildPointObject(wpt),
     ),
     tracks: getElementCollection(gpxFileDocument, "trk").map((trk) =>
       buildTrackObject(trk),
@@ -76,12 +75,50 @@ export const deconstructGPX = (gpxFileDocument) => {
 export const handleGPXParse = async (files) => {
   //uploadedFile is a File object which is a kind of Blob
   //so Blob methods work
-  let uploadedFile = files.files[0];
-  let file = await uploadedFile.text();
+  try {
+    let uploadedFile = files.files[0];
 
-  let parsedFile = gpxParser.parseFromString(file, "text/xml");
+    handleInvalidFile(uploadedFile);
 
-  const destructureGPXFile = deconstructGPX(parsedFile);
+    let file = await uploadedFile.text();
 
-  return destructureGPXFile;
+    let parsedFile = gpxParser.parseFromString(file, "text/xml");
+
+    handleMalformedFile(parsedFile);
+    const destructureGPXFile = deconstructGPX(parsedFile);
+
+    return destructureGPXFile;
+  } catch (e) {
+    console.error(`${e.name}: ${e.message}`);
+  }
+};
+
+function handleInvalidFile(file) {
+  let type = file.type || file.name.split(".");
+  if (type.typeOf === "string" && type !== "" && type !== "text/xml") {
+    throw new Error(
+      "This file type isn't supported. Please upload a GPX file.",
+    );
+  }
+
+  if (type.length > 0 && !type.includes("gpx")) {
+    throw new Error(
+      "This file type isn't supported. Please upload a GPX file.",
+    );
+  }
+
+  if (!file) {
+    throw new Error("No file provided");
+  }
+}
+
+export const handleMalformedFile = (parsedfile) => {
+  const hasParseError =
+    getElementCollection(parsedfile, "parsererror").length > 0;
+
+  if (hasParseError) {
+    throw new Error(
+      "We couldn't read this file because its XML structure is malformed.",
+    );
+  }
 };
