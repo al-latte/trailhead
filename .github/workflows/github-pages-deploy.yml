@@ -1,0 +1,22 @@
+naame: github-pages-deploy
+run-name: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
+on: 
+  push:
+    branches:
+      - main
+permissions:
+  pages: write
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: build
+        uses: npm run build
+
+      - name: deploy
+       uses: al_latte/github-pages-deploy-action@v4
+        with:
+          folder: build 
